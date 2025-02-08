@@ -859,7 +859,6 @@ function OrionLib:MakeWindow(WindowConfig)
 				ButtonConfig.Name = ButtonConfig.Name or "Button"
 				ButtonConfig.Callback = ButtonConfig.Callback or function() end
 				ButtonConfig.Icon = ButtonConfig.Icon or "rbxassetid://3944703587"
-				ButtonConfig.Patched = ButtonConfig.Patched or false -- NEW: Add Patched option
 
 				local Button = {}
 
@@ -870,21 +869,6 @@ function OrionLib:MakeWindow(WindowConfig)
 				local ButtonFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 5), {
 					Size = UDim2.new(1, 0, 0, 33),
 					Parent = ItemParent
-					if ButtonConfig.Patched then
-    local PatchedLabel = Create("TextLabel", {
-        Parent = ButtonFrame,
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        Text = "PATCHED",
-        TextColor3 = Color3.fromRGB(255, 0, 0),
-        Font = Enum.Font.GothamBlack,
-        TextSize = 24,
-        TextStrokeTransparency = 0,
-        TextScaled = true,
-        ZIndex = 10 -- Ensure it appears on top
-    })
-end
-
 				}), {
 					AddThemeObject(SetProps(MakeElement("Label", ButtonConfig.Name, 15), {
 						Size = UDim2.new(1, -12, 1, 0),
@@ -909,18 +893,6 @@ end
 				end)
 
 				AddConnection(Click.MouseButton1Up, function()
-					if not ButtonConfig.Patched then
-    AddConnection(Click.MouseButton1Up, function()
-        TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), 
-            {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, 
-            OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, 
-            OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
-        spawn(function()
-            ButtonConfig.Callback()
-        end)
-    end)
-end
-
 					TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
 					spawn(function()
 						ButtonConfig.Callback()
@@ -1737,6 +1709,8 @@ end
 		end
 		return ElementFunction   
 	end  
+	
+
 	
 	return TabFunction
 end   
