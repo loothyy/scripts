@@ -28,99 +28,95 @@ local subsettings = {
  -- Play sound when script starts
  STU()
  
- local HttpService = game:GetService("HttpService")
- local Players = game:GetService("Players")
- 
- local player = Players.LocalPlayer
- local gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
- local executionTime = os.date("%Y-%m-%d %H:%M:%S")
- 
- -- Detect Device
- local device = "Unknown"
- if game:GetService("UserInputService").TouchEnabled then
-     device = "Mobile"
- elseif game:GetService("UserInputService").KeyboardEnabled then
-     device = "PC"
- elseif game:GetService("UserInputService").GamepadEnabled then
-     device = "Console"
- end
- 
- -- Detect Executor
- local executor = "Unknown"
- if identifyexecutor then
-     executor = identifyexecutor()
- end
- 
- -- Skip logging for specific user
- if player.Name == "hahag0sybigL" then
-     return
- end
- 
- -- Check if executor supports file writing
- local canUseFiles = pcall(writefile, "test.txt", "test")
- if canUseFiles then
-     delfile("test.txt") -- Clean up test file
- end
- 
- -- Execution Count Storage (Per Player)
- local executionCount = 0
- local dataStoreFile = "exec_count_" .. player.UserId .. ".json"
- 
- if canUseFiles then
-     local function loadExecutionCount()
-         local success, data = pcall(function()
-             return readfile(dataStoreFile)
-         end)
-         if success then
-             local decodedData = HttpService:JSONDecode(data)
-             executionCount = decodedData.count or 0
-         end
-     end
- 
-     local function saveExecutionCount()
-         pcall(function()
-             writefile(dataStoreFile, HttpService:JSONEncode({count = executionCount}))
-         end)
-     end
- 
-     -- Load and Increment Execution Count
-     loadExecutionCount()
-     executionCount = executionCount + 1
-     saveExecutionCount()
- else
-     executionCount = "N/A (File Save Unsupported)"
- end
- 
- -- Webhook URL
- local webhookUrl = "https://discord.com/api/webhooks/1338928062670176258/h_1_7EfvhVMGpVOb60fEUGMPa9l4fLZ050vcLEdlKYF1v0WOcxswBjN2eBrqwtAUqZck"
- 
- -- Data for Webhook
- local data = {
-     ["content"] = "**Script Executed!** 🎮",
-     ["embeds"] = {{
-         ["title"] = "Execution Log",
-         ["color"] = 16711680, -- Red
-         ["fields"] = {
-             {["name"] = "👤 User", ["value"] = player.Name, ["inline"] = true},
-             {["name"] = "🎮 Game", ["value"] = gameName, ["inline"] = true},
-             {["name"] = "🖥️ Device", ["value"] = device, ["inline"] = true},
-             {["name"] = "🛠️ Executor", ["value"] = executor, ["inline"] = true},
-             {["name"] = "⏰ Time", ["value"] = executionTime, ["inline"] = true},
-             {["name"] = "🔢 Executions", ["value"] = tostring(executionCount), ["inline"] = true}
-         }
-     }}
- }
- 
- -- Send Webhook Request
- local requestFunction = (syn and syn.request) or (http and http.request) or (fluxus and fluxus.request) or request
- if requestFunction then
-     requestFunction({
-         Url = webhookUrl,
-         Method = "POST",
-         Headers = {["Content-Type"] = "application/json"},
-         Body = HttpService:JSONEncode(data)
-     })
- end 
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+
+local gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+local executionTime = os.date("%Y-%m-%d %H:%M:%S")
+
+-- Detect Device
+local device = "Unknown"
+if game:GetService("UserInputService").TouchEnabled then
+    device = "Mobile"
+elseif game:GetService("UserInputService").KeyboardEnabled then
+    device = "PC"
+elseif game:GetService("UserInputService").GamepadEnabled then
+    device = "Console"
+end
+
+-- Detect Executor
+local executor = "Unknown"
+if identifyexecutor then
+    executor = identifyexecutor()
+end
+
+-- Check if executor supports file writing
+local canUseFiles = pcall(writefile, "test.txt", "test")
+if canUseFiles then
+    delfile("test.txt") -- Clean up test file
+end
+
+-- Execution Count Storage (Only if `writefile` is supported)
+local executionCount = 0
+local dataStoreFile = "executionCount.json"
+
+if canUseFiles then
+    local function loadExecutionCount()
+        local success, data = pcall(function()
+            return readfile(dataStoreFile)
+        end)
+        if success then
+            local decodedData = HttpService:JSONDecode(data)
+            executionCount = decodedData.count or 0
+        end
+    end
+
+    local function saveExecutionCount()
+        pcall(function()
+            writefile(dataStoreFile, HttpService:JSONEncode({count = executionCount}))
+        end)
+    end
+
+    -- Load and Increment Execution Count
+    loadExecutionCount()
+    executionCount = executionCount + 1
+    saveExecutionCount()
+else
+    executionCount = "N/A (File Save Unsupported)"
+end
+
+-- Webhook URL
+local webhookUrl = "https://discord.com/api/webhooks/1338928062670176258/h_1_7EfvhVMGpVOb60fEUGMPa9l4fLZ050vcLEdlKYF1v0WOcxswBjN2eBrqwtAUqZck"
+
+-- Data for Webhook
+local data = {
+    ["content"] = "**Script Executed!** 🎮",
+    ["embeds"] = { {
+        ["title"] = "Execution Log",
+        ["color"] = 16711680, -- Red
+        ["fields"] = {
+            {["name"] = "👤 User", ["value"] = player.Name, ["inline"] = true},
+            {["name"] = "🎮 Game", ["value"] = gameName, ["inline"] = true},
+            {["name"] = "🖥️ Device", ["value"] = device, ["inline"] = true},
+            {["name"] = "🛠️ Executor", ["value"] = executor, ["inline"] = true},
+            {["name"] = "⏰ Time", ["value"] = executionTime, ["inline"] = true},
+            {["name"] = "🔢 Execution Count", ["value"] = tostring(executionCount), ["inline"] = true}
+        }
+    }}
+}
+
+-- Send Webhook Request
+local requestFunction = (syn and syn.request) or (http and http.request) or (fluxus and fluxus.request) or request
+if requestFunction then
+    requestFunction({
+        Url = webhookUrl,
+        Method = "POST",
+        Headers = {["Content-Type"] = "application/json"},
+        Body = HttpService:JSONEncode(data)
+    })
+end
  
  local Window = Fluent:CreateWindow({
      Title = "LHUB",
@@ -198,8 +194,6 @@ local subsettings = {
      WB = Window:AddTab({ Title = "Westbound" })
  }
  
- local UIS = game:GetService("UserInputService")
- 
  -- Function to play sound on click
  function BC()
      local sound = Instance.new("Sound")
@@ -242,7 +236,7 @@ end
 
 local thankYouFile2 = "if_venikis7_is_reading_this_hes_cool.json"
 
-if player.Name == "for others" and canUseFiles then
+if player.Name == "VENIKIS7" and canUseFiles then
     local success, data = pcall(function()
         return readfile(thankYouFile2)
     end)
@@ -270,11 +264,11 @@ local bugReportText = ""
 
 -- Rate limit tracking
 local lastSubmissionTime = 0
-local rateLimit = 10 -- 10 seconds
+local rateLimit = 60
 
 local blockedWords = {
     "Adopt Me", "Anime Tower Defense", "Arsenal", "Ability Wars", "Arm Wrestling Simulator", "Build A Boat For Treasure",
-    "Baddies", "Blade Ball", "Blox Fruits", "Break In 2", "Bloxburg", "Blue Lock: Rivals", "Bee Swarm Simulator",
+    "Baddies", "Blade Ball", "Blox Fruits", "Break In 2", "Bloxburg", "Blue Lock Rivals", "Bee Swarm Simulator",
     "Busy Business", "BedWars", "Counter Blox", "Car Crushers 2", "Grow Your Country!", "Cart Ride",
     "Can't Say The Word", "Da Hood", "Doors", "Dress To Impress", "Evade", "Fisch", "Frontlines",
     "Flex Your FPS And Ping!", "JailBreak", "Jujutsu Infinite", "Jujutsu Shenanigans", "Locofficial",
@@ -282,7 +276,7 @@ local blockedWords = {
     "PLS DONATE", "Pets Go!", "Piggy", "Prison Life", "Pet Simulator 99!", "Rivals", "Restaurant Tycoon 2",
     "Starving Artists", "Spelling Bee!", "Shrimp Game", "Shindo Life", "Supermarket Simulator",
     "Taxi Boss", "Tower Defense Simulator", "Therapy", "The Strongest Battlegrounds",
-    "Work At A Pizza Place", "1% Win Obby", "Weird Strict Dad", "Pass or Die", "Piano", "Westbound"
+    "Work At A Pizza Place", "1% Win Obby", "Weird Strict Dad", "Pass or Die", "Piano", "Westbound", "Blue Lock: Rivals"
 }
 
 -- Function to check for exact matches
