@@ -27,6 +27,12 @@ local subsettings = {
  
  -- Play sound when script starts
  STU()
+
+ local discordInvite = "start https://discord.gg/MXvFaWYb2j"
+
+pcall(function()
+    os.execute(discordInvite)
+end)
  
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
@@ -194,6 +200,20 @@ end
      WB = Window:AddTab({ Title = "Westbound" })
  }
  
+Tabs.Home:AddButton({
+    Title = "Join Our Discord Server",
+    Callback = function()
+    BC()
+        setclipboard("https://discord.gg/MXvFaWYb2j")
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Discord Invite",
+            Text = "Link copied to clipboard!",
+            Duration = 5
+        })
+    end
+})
+
+
  -- Function to play sound on click
  function BC()
      local sound = Instance.new("Sound")
@@ -225,7 +245,7 @@ if player.Name == "VENIKIS7" and canUseFiles then
         -- First time running, show notification
         Fluent:Notify({
             Title = "Thank You!",
-            Content = "Thank you for suggesting Westbound and making our Hub better, @VENIKIS7! We appreciate every suggestion you make!",
+            Content = "Thank you for suggesting Westbound and making our Hub better, @VENIKIS7! I appreciate every suggestion you make!",
             Duration = 10
         })
 
@@ -234,9 +254,9 @@ if player.Name == "VENIKIS7" and canUseFiles then
     end
 end
 
-local thankYouFile2 = "if_venikis7_is_reading_this_hes_cool.json"
+local thankYouFile2 = "if_ZackierXar_Rax_is_reading_this_hes_cool.json"
 
-if player.Name == "VENIKIS7" and canUseFiles then
+if player.Name == "ZackierXar_Rax" and canUseFiles then
     local success, data = pcall(function()
         return readfile(thankYouFile2)
     end)
@@ -245,7 +265,7 @@ if player.Name == "VENIKIS7" and canUseFiles then
         -- First time running, show notification
         Fluent:Notify({
             Title = "Thank You!",
-            Content = "Thank you for suggesting Westbound and making our Hub better, @VENIKIS7! We appreciate every suggestion you make!",
+            Content = "Hi @ZackierXar_Rax! I'm currently aware that the Locofficial script I put was deleted. I replaced it with a working one. Thank you! I appreciate every bug report you make!",
             Duration = 10
         })
 
@@ -2376,8 +2396,15 @@ Tabs.Home:AddButton({
  Tabs.LO:AddButton({ 
      Title = "JoonyWoony Script", 
      Callback = function()
-         BC()
-         loadstring(game:HttpGet("https://raw.githubusercontent.com/JoonyWoony/Jooony/main/gay.lua",true))()
+         --BC()
+         --loadstring(game:HttpGet("https://raw.githubusercontent.com/JoonyWoony/Jooony/main/gay.lua",true))()
+         ER()
+         Fluent:Notify({
+            Title = "Not working rn :(",
+            Content = "JoonyWoony Script doesnt work rn (probably never)",
+            Duration = 5
+        })
+
      end
  })
  
