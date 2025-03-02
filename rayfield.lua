@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 -- Poll Configuration
 local PollConfig = {
     Webhook = "https://discord.com/api/webhooks/1345805558304870412/Uw07HnzaEJvnwS12yT7eXfZ6sv8OnaED9ICgKznHOjj2XUEqsLt1Yg25JAZy8FLnYWrn",
-    EndTime = 1741032720, -- Unix timestamp for poll end
+    EndTime = os.time() + (24 * 60 * 60), -- 24 hours from now
     Title = "Do you like the new UI?",
     Options = {
         "Yes",
@@ -17,6 +17,9 @@ local Votes = {}
 for _, option in ipairs(PollConfig.Options) do
     Votes[option] = 0
 end
+
+-- Track voted players
+local VotedPlayers = {}
 
 -- Function to send vote to webhook
 local function SendVoteToWebhook(player, votedOption)
@@ -62,6 +65,12 @@ end
 
 -- Function to create poll buttons
 return function(Home)
+    -- Create poll title
+    Home:CreateParagraph({
+        Title = PollConfig.Title,
+        Content = "Cast your vote below!"
+    })
+
     -- Create poll buttons
     for _, option in ipairs(PollConfig.Options) do
         Home:CreateButton({
@@ -69,6 +78,16 @@ return function(Home)
             Callback = function()
                 local player = Players.LocalPlayer
                 
+                -- Check if player already voted
+                if VotedPlayers[player.UserId] then
+                    Rayfield:Notify({
+                        Title = "Already Voted",
+                        Content = "You can only vote once!",
+                        Duration = 3
+                    })
+                    return
+                end
+
                 -- Check if poll is still active
                 if os.time() > PollConfig.EndTime then
                     Rayfield:Notify({
@@ -79,8 +98,14 @@ return function(Home)
                     return
                 end
                 
+                -- Play button click sound
+                BC()
+                
                 -- Increment vote
                 Votes[option] = Votes[option] + 1
+                
+                -- Mark player as voted
+                VotedPlayers[player.UserId] = true
                 
                 -- Send vote to webhook
                 SendVoteToWebhook(player, option)
