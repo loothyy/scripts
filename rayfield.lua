@@ -21,46 +21,17 @@ end
 -- Track voted players
 local VotedPlayers = {}
 
--- Function to send vote to webhook
-local function SendVoteToWebhook(player, votedOption)
-    local totalVotes = 0
-    for _, count in pairs(Votes) do
-        totalVotes = totalVotes + count
+-- Function to format time remaining
+local function FormatTimeRemaining(endTime)
+    local timeLeft = endTime - os.time()
+    if timeLeft <= 0 then
+        return "Poll has ended"
     end
     
-    -- Calculate percentages
-    local percentages = {}
-    for option, count in pairs(Votes) do
-        percentages[option] = totalVotes > 0 and math.floor((count / totalVotes) * 100) or 0
-    end
+    local hours = math.floor(timeLeft / 3600)
+    local minutes = math.floor((timeLeft % 3600) / 60)
     
-    -- Prepare webhook payload
-    local payload = {
-        embeds = {{
-            title = PollConfig.Title,
-            description = string.format("**New Vote by %s**\n\n**Votes:**\n", player.Name),
-            fields = {},
-            timestamp = DateTime.now():ToIsoDateString()
-        }}
-    }
-    
-    -- Add vote percentages to payload
-    for option, percentage in pairs(percentages) do
-        table.insert(payload.embeds[1].fields, {
-            name = option,
-            value = string.format("Votes: %d (%.1f%%)", Votes[option], percentage),
-            inline = true
-        })
-    end
-    
-    -- Send to webhook
-    local success, err = pcall(function()
-        HttpService:PostAsync(PollConfig.Webhook, HttpService:JSONEncode(payload))
-    end)
-    
-    if not success then
-        warn("Failed to send webhook: " .. tostring(err))
-    end
+    return string.format("Ends in %d hours and %d minutes", hours, minutes)
 end
 
 -- Function to create poll buttons
@@ -78,6 +49,12 @@ return function(Home)
             Callback = function()
                 local player = Players.LocalPlayer
                 
+                -- Ensure Rayfield and BC functions exist
+                if not Rayfield or not BC then
+                    warn("Rayfield or BC function not found")
+                    return
+                end
+
                 -- Check if player already voted
                 if VotedPlayers[player.UserId] then
                     Rayfield:Notify({
@@ -98,17 +75,14 @@ return function(Home)
                     return
                 end
                 
-                -- Play button click sound
-                BC()
+                -- Play button click sound (if BC exists)
+                pcall(function() BC() end)
                 
                 -- Increment vote
                 Votes[option] = Votes[option] + 1
                 
                 -- Mark player as voted
                 VotedPlayers[player.UserId] = true
-                
-                -- Send vote to webhook
-                SendVoteToWebhook(player, option)
                 
                 -- Notify user
                 Rayfield:Notify({
@@ -123,6 +97,6 @@ return function(Home)
     -- Add poll end time display
     Home:CreateParagraph({
         Title = "Poll Information",
-        Content = string.format("Poll ends <t:%d:R>", PollConfig.EndTime)
+        Content = FormatTimeRemaining(PollConfig.EndTime)
     })
 end
