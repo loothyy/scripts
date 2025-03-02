@@ -21,20 +21,12 @@ end
 -- Function to send vote to Discord webhook
 local function SendVote(player, vote)
     if not IsPollOpen() then
-        Rayfield:Notify({
-            Title = "Poll Closed",
-            Content = "The poll has ended, and you can no longer vote!",
-            Duration = 3
-        })
+        warn("[POLL] Vote rejected: Poll has ended.")
         return
     end
 
     if VotedPlayers[player.UserId] then
-        Rayfield:Notify({
-            Title = "Vote Failed",
-            Content = "You have already voted!",
-            Duration = 3
-        })
+        warn("[POLL] Vote rejected: " .. player.Name .. " already voted.")
         return
     end
 
@@ -65,23 +57,15 @@ local function SendVote(player, vote)
     end)
 
     if success then
-        Rayfield:Notify({
-            Title = "Vote Submitted",
-            Content = "You voted " .. vote .. "!",
-            Duration = 3
-        })
+        print("[POLL] Vote submitted: " .. player.Name .. " voted " .. vote)
     else
-        Rayfield:Notify({
-            Title = "Vote Failed",
-            Content = "Error sending vote!",
-            Duration = 3
-        })
+        warn("[POLL] Vote failed: Error sending vote for " .. player.Name)
     end
 end
 
 -- Function to create poll UI
 return function(Home)
-    print("[POLL] Poll has started!") -- Print when the poll starts
+    print("POLL!") -- Print when the poll starts
 
     -- Create poll title
     Home:CreateParagraph({
@@ -96,6 +80,8 @@ return function(Home)
             local player = Players.LocalPlayer
             if player then
                 SendVote(player, "Yes")
+            else
+                warn("[POLL] No LocalPlayer found!")
             end
         end
     })
@@ -106,6 +92,8 @@ return function(Home)
             local player = Players.LocalPlayer
             if player then
                 SendVote(player, "No")
+            else
+                warn("[POLL] No LocalPlayer found!")
             end
         end
     })
