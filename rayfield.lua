@@ -1,9 +1,7 @@
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
-local PollEndTimestamp = 1741032720 -- UNIX timestamp for when the poll ends
-
-print("test")
+local PollEndTimestamp = 1741032720 -- UNIX timestamp for poll end time
 
 -- Poll Configuration
 local PollConfig = {
@@ -25,7 +23,7 @@ local function SendVote(player, vote)
     if not IsPollOpen() then
         Rayfield:Notify({
             Title = "Poll Closed",
-            Content = "The poll has ended and you can no longer vote!",
+            Content = "The poll has ended, and you can no longer vote!",
             Duration = 3
         })
         return
@@ -45,8 +43,8 @@ local function SendVote(player, vote)
 
     -- Calculate percentages
     local totalVotes = Votes.Yes + Votes.No
-    local yesPercent = math.floor((Votes.Yes / totalVotes) * 100)
-    local noPercent = math.floor((Votes.No / totalVotes) * 100)
+    local yesPercent = totalVotes > 0 and math.floor((Votes.Yes / totalVotes) * 100) or 0
+    local noPercent = totalVotes > 0 and math.floor((Votes.No / totalVotes) * 100) or 0
 
     -- Get game name
     local gameName = "Unknown Game"
@@ -81,8 +79,10 @@ local function SendVote(player, vote)
     end
 end
 
--- Function to create poll buttons
+-- Function to create poll UI
 return function(Home)
+    print("[POLL] Poll has started!") -- Print when the poll starts
+
     -- Create poll title
     Home:CreateParagraph({
         Title = PollConfig.Title,
@@ -94,7 +94,9 @@ return function(Home)
         Name = "Yes",
         Callback = function()
             local player = Players.LocalPlayer
-            SendVote(player, "Yes")
+            if player then
+                SendVote(player, "Yes")
+            end
         end
     })
 
@@ -102,7 +104,9 @@ return function(Home)
         Name = "No",
         Callback = function()
             local player = Players.LocalPlayer
-            SendVote(player, "No")
+            if player then
+                SendVote(player, "No")
+            end
         end
     })
 end
