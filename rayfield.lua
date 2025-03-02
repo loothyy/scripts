@@ -1,5 +1,6 @@
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
+local MarketplaceService = game:GetService("MarketplaceService")
 
 -- Poll Configuration
 local PollConfig = {
@@ -7,8 +8,61 @@ local PollConfig = {
     Title = "Do you like the new UI?"
 }
 
--- Track voted players
+-- Track votes
+local Votes = { Yes = 0, No = 0 }
 local VotedPlayers = {}
+
+-- Function to send vote to Discord webhook
+local function SendVote(player, vote)
+    if VotedPlayers[player.UserId] then
+        Rayfield:Notify({
+            Title = "Vote Failed",
+            Content = "You have already voted!",
+            Duration = 3
+        })
+        return
+    end
+
+    VotedPlayers[player.UserId] = true -- Mark player as voted
+    Votes[vote] = Votes[vote] + 1
+
+    -- Calculate percentages
+    local totalVotes = Votes.Yes + Votes.No
+    local yesPercent = math.floor((Votes.Yes / totalVotes) * 100)
+    local noPercent = math.floor((Votes.No / totalVotes) * 100)
+
+    -- Get game name
+    local gameName = "Unknown Game"
+    pcall(function()
+        gameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
+    end)
+
+    -- Format message
+    local data = {
+        content = string.format(
+            "**%s** voted: **%s**\n🕹 **Game:** %s\n📊 **Vote Results:**\n✅ Yes: %d%% (%d votes)\n❌ No: %d%% (%d votes)",
+            player.Name, vote, gameName, yesPercent, Votes.Yes, noPercent, Votes.No
+        )
+    }
+
+    local success, response = pcall(function()
+        return HttpService:PostAsync(PollConfig.Webhook, HttpService:JSONEncode(data), Enum.HttpContentType.ApplicationJson)
+    end)
+
+    if success then
+        Rayfield:Notify({
+            Title = "Vote Submitted",
+            Content = "You voted " .. vote .. "!",
+            Duration = 3
+        })
+    else
+        Rayfield:Notify({
+            Title = "Vote Failed",
+            Content = "Error sending vote!",
+            Duration = 3
+        })
+    end
+end
 
 -- Function to create poll buttons
 return function(Home)
@@ -23,18 +77,7 @@ return function(Home)
         Name = "Yes",
         Callback = function()
             local player = Players.LocalPlayer
-            
-            -- Play button click sound
-            pcall(function() 
-                BC() 
-            end)
-            
-            -- Notify user
-            Rayfield:Notify({
-                Title = "Vote Submitted",
-                Content = "You voted Yes!",
-                Duration = 3
-            })
+            SendVote(player, "Yes")
         end
     })
 
@@ -42,18 +85,7 @@ return function(Home)
         Name = "No",
         Callback = function()
             local player = Players.LocalPlayer
-            
-            -- Play button click sound
-            pcall(function() 
-                BC() 
-            end)
-            
-            -- Notify user
-            Rayfield:Notify({
-                Title = "Vote Submitted",
-                Content = "You voted No!",
-                Duration = 3
-            })
+            SendVote(player, "No")
         end
     })
 end
