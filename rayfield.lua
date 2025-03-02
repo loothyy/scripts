@@ -3,6 +3,8 @@ local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 local PollEndTimestamp = 1741032720 -- UNIX timestamp for when the poll ends
 
+print("test")
+
 -- Poll Configuration
 local PollConfig = {
     Webhook = "https://discord.com/api/webhooks/1345805558304870412/Uw07HnzaEJvnwS12yT7eXfZ6sv8OnaED9ICgKznHOjj2XUEqsLt1Yg25JAZy8FLnYWrn",
