@@ -1,6 +1,10 @@
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
+
+-- Ensure Rayfield is required (Replace this with the actual Rayfield initialization if needed)
+local Rayfield = require(game.ReplicatedStorage:WaitForChild("Rayfield"))
+
 local PollEndTimestamp = 1741032720 -- UNIX timestamp for poll end time
 
 -- Poll Configuration
@@ -21,12 +25,20 @@ end
 -- Function to send vote to Discord webhook
 local function SendVote(player, vote)
     if not IsPollOpen() then
-        warn("[POLL] Vote rejected: Poll has ended.")
+        Rayfield:Notify({
+            Title = "Poll Closed",
+            Content = "The poll has ended, and you can no longer vote!",
+            Duration = 3
+        })
         return
     end
 
     if VotedPlayers[player.UserId] then
-        warn("[POLL] Vote rejected: " .. player.Name .. " already voted.")
+        Rayfield:Notify({
+            Title = "Vote Failed",
+            Content = "You have already voted!",
+            Duration = 3
+        })
         return
     end
 
@@ -57,15 +69,25 @@ local function SendVote(player, vote)
     end)
 
     if success then
-        print("[POLL] Vote submitted: " .. player.Name .. " voted " .. vote)
+        Rayfield:Notify({
+            Title = "Vote Submitted",
+            Content = "You voted " .. vote .. "!",
+            Duration = 3
+        })
+        print("[POLL] " .. player.Name .. " voted " .. vote)
     else
+        Rayfield:Notify({
+            Title = "Vote Failed",
+            Content = "Error sending vote!",
+            Duration = 3
+        })
         warn("[POLL] Vote failed: Error sending vote for " .. player.Name)
     end
 end
 
 -- Function to create poll UI
 return function(Home)
-    print("POLL!") -- Print when the poll starts
+    print("[POLL] Poll has started!") -- Print when the poll starts
 
     -- Create poll title
     Home:CreateParagraph({
@@ -79,6 +101,8 @@ return function(Home)
         Callback = function()
             local player = Players.LocalPlayer
             if player then
+                print("[POLL] Yes button clicked by " .. player.Name) -- Debug print
+                pcall(function() BC() end) -- Play button click sound safely
                 SendVote(player, "Yes")
             else
                 warn("[POLL] No LocalPlayer found!")
@@ -91,6 +115,8 @@ return function(Home)
         Callback = function()
             local player = Players.LocalPlayer
             if player then
+                print("[POLL] No button clicked by " .. player.Name) -- Debug print
+                pcall(function() BC() end) -- Play button click sound safely
                 SendVote(player, "No")
             else
                 warn("[POLL] No LocalPlayer found!")
