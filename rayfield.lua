@@ -1,6 +1,7 @@
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
+local PollEndTimestamp = 1741032720 -- UNIX timestamp for when the poll ends
 
 -- Poll Configuration
 local PollConfig = {
@@ -12,8 +13,22 @@ local PollConfig = {
 local Votes = { Yes = 0, No = 0 }
 local VotedPlayers = {}
 
+-- Function to check if poll is still open
+local function IsPollOpen()
+    return os.time() < PollEndTimestamp
+end
+
 -- Function to send vote to Discord webhook
 local function SendVote(player, vote)
+    if not IsPollOpen() then
+        Rayfield:Notify({
+            Title = "Poll Closed",
+            Content = "The poll has ended and you can no longer vote!",
+            Duration = 3
+        })
+        return
+    end
+
     if VotedPlayers[player.UserId] then
         Rayfield:Notify({
             Title = "Vote Failed",
@@ -40,8 +55,8 @@ local function SendVote(player, vote)
     -- Format message
     local data = {
         content = string.format(
-            "**%s** voted: **%s**\n🕹 **Game:** %s\n📊 **Vote Results:**\n✅ Yes: %d%% (%d votes)\n❌ No: %d%% (%d votes)",
-            player.Name, vote, gameName, yesPercent, Votes.Yes, noPercent, Votes.No
+            "**%s** voted: **%s**\n🕹 **Game:** %s\n📊 **Vote Results:**\n✅ Yes: %d%% (%d votes)\n❌ No: %d%% (%d votes)\n\n📅 Poll ends: <t:%d:R>",
+            player.Name, vote, gameName, yesPercent, Votes.Yes, noPercent, Votes.No, PollEndTimestamp
         )
     }
 
@@ -69,7 +84,7 @@ return function(Home)
     -- Create poll title
     Home:CreateParagraph({
         Title = PollConfig.Title,
-        Content = "Cast your vote below!"
+        Content = "Cast your vote below! Poll ends soon."
     })
 
     -- Create poll buttons
